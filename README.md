@@ -45,10 +45,10 @@ API is served under `http://localhost:4000/api/v1`. Health check: `GET /api/v1/h
 
 ### Demo accounts (from the seeder)
 
-| Role       | Email                  | Password       |
-|------------|-------------------------|----------------|
-| admin      | admin@medcart.app       | Password123!   |
-| pharmacist | pharmacist@medcart.app  | Password123!   |
+| Role       | Email                  | Password     |
+| ---------- | ---------------------- | ------------ |
+| admin      | admin@medcart.app      | Password123! |
+| pharmacist | pharmacist@medcart.app | Password123! |
 
 Demo branch, 3 products (2 OTC, 1 Rx-gated), stock levels, and a `WELCOME10` promo code
 are seeded too.
@@ -115,7 +115,7 @@ were credited, the order appeared in order history, and that adding a prescripti
 item without a `prescriptionId` is correctly rejected. Role-based access control was
 confirmed by observing a `customer` token get a 403 on a staff-only stock endpoint.
 
-What's *not* live-tested here (needs real third-party credentials you'll supply):
+What's _not_ live-tested here (needs real third-party credentials you'll supply):
 payment gateway charge flow, SMS/email OTP delivery, push notifications, S3 upload, and
 the ERP connector — each has a clearly marked seam and `TODO` to wire in.
 
@@ -131,3 +131,25 @@ the ERP connector — each has a clearly marked seam and `TODO` to wire in.
 - Add a real queue/worker (BullMQ + Redis) once ERP sync and notification fan-out need
   to run asynchronously at scale — both are currently synchronous but isolated behind
   their service modules, so swapping in a queue is a contained change.
+
+## Docker Image
+
+A pre-built image is available on Docker Hub if you'd rather pull than build:
+
+```bash
+docker pull taiwo17/epharmacy-backend:v1
+```
+
+The Compose setup uses a `healthcheck` on the Postgres service (`pg_isready`) combined
+with `depends_on: condition: service_healthy` on the API service, so the API container
+won't attempt to connect — or run migrations — until Postgres is actually ready to
+accept connections. This avoids the race condition that's common in naive Compose
+setups where the app starts before the database does.
+
+**Debugging note:** the trickiest issue during containerization wasn't networking —
+it was a silent credential mismatch: the Postgres container was initialized with one
+password via `docker-compose.yml`, while the app read a _different_ password from
+`.env`, producing a `password authentication failed` error that looked identical
+before and after wiping the data volume. Fixed by having Compose interpolate
+`${DB_USER}` / `${DB_PASSWORD}` / `${DB_NAME}` directly from `.env` instead of
+hardcoding separate values in the compose file, so both sides always agree.

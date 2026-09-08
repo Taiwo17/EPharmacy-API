@@ -76,6 +76,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             docker pull taiwo17/epharmacy-backend:latest
+            docker rm -f api || true
             docker run -d --name api --network app-network -p 4000:4000 \
             -e NODE_ENV=production -e PORT=4000 \
             -e DB_HOST=postgres -e DB_PORT=5432 \

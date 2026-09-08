@@ -4,7 +4,6 @@ const schemas = require('../validators/auth.validator')
 const controller = require('../controllers/auth.controllers')
 const { authenticate } = require('../middlewares/auth')
 
-router.get('/profile', authenticate, controller.getProfile)
 router.post('/register', validate(schemas.register), controller.register)
 router.post('/login', validate(schemas.login), controller.login)
 router.post('/refresh', validate(schemas.refresh), controller.refresh)

@@ -70,6 +70,10 @@ src/
   utils/            ApiError, apiResponse, asyncHandler, pagination, logger, orderNumber
   app.js            Express app assembly (middleware stack + routes)
   server.js         Entrypoint — connects DB, then listens
+tests/
+  health.test.js    Smoke test hitting GET /api/v1/health
+.github/workflows/
+  ci-cd.yml         GitHub Actions pipeline — migrate, test, build, push to Docker Hub on every push to master
 ```
 
 ## Design notes worth knowing before you extend this
@@ -153,3 +157,15 @@ password via `docker-compose.yml`, while the app read a _different_ password fro
 before and after wiping the data volume. Fixed by having Compose interpolate
 `${DB_USER}` / `${DB_PASSWORD}` / `${DB_NAME}` directly from `.env` instead of
 hardcoding separate values in the compose file, so both sides always agree.
+
+## CI/CD
+
+Every push to `master` triggers `.github/workflows/ci-cd.yml`, which:
+
+1. Spins up a throwaway Postgres service inside the CI runner
+2. Runs migrations against it
+3. Runs the test suite (`npm test`) — the pipeline stops here if tests fail
+4. Logs into Docker Hub using repo secrets (`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`)
+5. Builds and pushes the image to `taiwo17/epharmacy-backend:latest`
+
+A broken image is never pushed — the test step gates the build/push steps.

@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config()
 
 const base = {
   host: process.env.DB_HOST || 'localhost',
@@ -9,7 +9,7 @@ const base = {
     underscored: true,
     timestamps: true,
   },
-};
+}
 
 module.exports = {
   development: {
@@ -30,11 +30,14 @@ module.exports = {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions:
+      process.env.DB_SSL === 'true'
+        ? {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
   },
-};
+}

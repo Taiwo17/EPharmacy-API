@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: epharmacy-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: epharmacy-api
+
+  template:
+    metadata:
+      labels:
+        app: epharmacy-api
+
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:16-alpine
+        command: [ 'sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for postgres; sleep 2; done' ]
+
+      containers:
+      - name: api
+        image: taiwo17/epharmacy-backend:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: NODE_ENV
+          value: "development"
+        - name: PORT
+          value: "4000"
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          value: "postgres"
+        - name: DB_NAME
+          value: "epharmacy_dev"

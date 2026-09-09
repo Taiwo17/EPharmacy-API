@@ -5,3 +5,12 @@ npm-debug.log
 dist/
 coverage/
 .DS_Store
+
+*.pem
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+get_helm.sh
+helm.zip
+windows-amd64/
